@@ -102,3 +102,22 @@ async fn client_test() {
         info!("recv {:?}", x);
     }
 }
+
+#[test]
+fn qr_test() {
+    use qrcode::render::unicode;
+    use qrcode::QrCode;
+
+    let code = QrCode::new(
+        "https://passport.bilibili.com/qrcode/h5/login?oauthKey=beb978f21de4a6dbcba53c720e155560",
+    )
+    .unwrap();
+    let image = code
+        .render::<unicode::Dense1x2>()
+        .dark_color(unicode::Dense1x2::Light)
+        .light_color(unicode::Dense1x2::Dark)
+        // .quiet_zone(true)
+        .build();
+    println!("qrcode");
+    println!("{}", image);
+}
