@@ -141,7 +141,7 @@ pub struct APIResult<T> {
     #[serde(default)]
     pub status: bool,
     #[serde(default)]
-    pub code: u32,
+    pub code: i32,
     #[serde(default)]
     pub message: Option<String>,
     #[serde(default)]
@@ -285,5 +285,54 @@ pub async fn send_barrage(
 async fn test_send_barrage() {
     let client = get_client().await.unwrap();
     let r = send_barrage(&client, "421296", "弹幕测试").await;
+    println!("{:?}", r)
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+#[serde(untagged)]
+pub enum BanUserResult {
+    Success { uname: String },
+    Fail(Vec<()>),
+}
+
+pub async fn ban_user(
+    api_client: &APIClient,
+    room_id: &str,
+    block_uid: &str,
+    hour: u32,
+) -> Result<APIResult<BanUserResult>, Error> {
+    let hour = format!("{}", hour);
+    let param = [
+        ("roomid", room_id),
+        ("block_uid", block_uid),
+        ("hour", hour.as_str()),
+        ("csrf_token", api_client.token.csrf.as_str()),
+        ("csrf", api_client.token.csrf.as_str()),
+        ("visit_id", ""),
+    ];
+    let resp = api_client
+        .client
+        .post("https://api.live.bilibili.com/banned_service/v2/Silent/add_block_user")
+        .header(USER_AGENT, UA)
+        .header(reqwest::header::REFERER, "https://live.bilibili.com")
+        .form(&param)
+        .send()
+        .await
+        .map_err(|e| anyhow!("{}", e))?;
+
+    let r = resp
+        .json::<APIResult<BanUserResult>>()
+        .await
+        .map_err(|e| anyhow!("{}", e))?;
+    Ok(r)
+}
+
+#[tokio::test]
+async fn test_ban_user() {
+    let client = get_client().await.unwrap();
+    let r = ban_user(&client, "421296", "386121455", 1).await;
+    println!("{:?}", r);
+    tokio::time::sleep(Duration::from_millis(500)).await;
+    let r = ban_user(&client, "421295", "386121455", 1).await;
     println!("{:?}", r)
 }
