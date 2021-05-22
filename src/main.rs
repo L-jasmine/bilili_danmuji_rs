@@ -4,7 +4,6 @@ extern crate anyhow;
 extern crate log;
 
 mod bili_api;
-mod entity;
 mod ws;
 
 fn main() {
