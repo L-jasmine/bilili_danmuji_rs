@@ -76,7 +76,7 @@ async fn loop_handle_msg(
             }
             Message::Binary(bin) => match message::decode_from_server(bin) {
                 Ok(msg) => {
-                    info!("recv msg {:?}", msg);
+                    debug!("recv msg {:?}", msg);
                     wx.send(msg).await.map_err(|e| anyhow!("{:?}", e))?;
                 }
                 Err(e) => {
@@ -96,10 +96,20 @@ async fn loop_handle_msg(
 async fn client_test() {
     env_logger::init();
     let u = "wss://broadcastlv.chat.bilibili.com/sub".parse().unwrap();
-    let mut s = connect(u, 22894286).await;
+    let mut s = connect(u, 421296).await;
 
     while let Some(x) = s.rx.recv().await {
-        info!("recv {:?}", x);
+        match x {
+            ServerLiveMessage::LoginAck => {
+                info!("login ack")
+            }
+            ServerLiveMessage::Notification(notification) => {
+                info!("notification: {}", notification)
+            }
+            ServerLiveMessage::ServerHeartBeat => {
+                info!("heart_beat")
+            }
+        }
     }
 }
 
