@@ -243,3 +243,50 @@ pub async fn get_bili_client(
     };
     Ok((APIClient { client, token }, r))
 }
+
+pub async fn send_barrage(
+    api_client: &APIClient,
+    room_id: &str,
+    barrage: &str,
+) -> Result<APIResult<serde_json::Value>, Error> {
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .expect("Time went backwards");
+    let now = format!("{}", now.as_secs());
+    let param = [
+        ("color", "16777215"), // 默认白色
+        ("fontsize", "25"),
+        ("mode", "1"), // 1 是滚动弹幕 4 是底部弹幕
+        ("msg", barrage),
+        ("rnd", now.as_str()),
+        ("roomid", room_id),
+        ("bubble", "0"),
+        ("csrf_token", api_client.token.csrf.as_str()),
+        ("csrf", api_client.token.csrf.as_str()),
+    ];
+    let resp = api_client
+        .client
+        .post("https://api.live.bilibili.com/msg/send")
+        .header(USER_AGENT, UA)
+        .header(
+            reqwest::header::REFERER,
+            format!("https://live.bilibili.com/{}", room_id),
+        )
+        .form(&param)
+        .send()
+        .await
+        .map_err(|e| anyhow!("{}", e))?;
+
+    let r = resp
+        .json::<APIResult<serde_json::Value>>()
+        .await
+        .map_err(|e| anyhow!("{}", e))?;
+    Ok(r)
+}
+
+#[tokio::test]
+async fn test_send_barrage() {
+    let client = get_client().await.unwrap();
+    let r = send_barrage(&client, "421296", "弹幕测试").await;
+    println!("{:?}", r)
+}
