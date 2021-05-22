@@ -1,6 +1,6 @@
 use anyhow::Error;
 use reqwest::cookie::{CookieStore, Jar};
-use reqwest::header::ToStrError;
+use reqwest::header::{ToStrError, USER_AGENT};
 use reqwest::{Client, Url};
 use serde::{Deserialize, Serialize};
 use std::io::Cursor;
@@ -13,6 +13,9 @@ const TOKEN_PATH: &'static str = "token";
 const COOKIE_USER_ID: &'static str = "DedeUserID=";
 const COOKIE_SESSDATA: &'static str = "SESSDATA=";
 const COOKIE_BILI_JCT: &'static str = "bili_jct=";
+
+const UA: &'static str =
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36";
 
 #[derive(Debug)]
 pub struct UserToken {
@@ -65,7 +68,7 @@ fn check_cookie(jar: &Jar) -> Result<UserToken, Error> {
 }
 
 fn get_client_from_file() -> Result<APIClient, Error> {
-    info!("get token.bk from file `token.bk`");
+    info!("get token from file `token`");
     let domain_url = BILI_URL.parse().unwrap();
     let jar = Jar::default();
     let tokens = std::fs::read_to_string(TOKEN_PATH).map_err(|e| anyhow!("{}", e))?;
@@ -131,6 +134,8 @@ async fn test_get_client() {
     println!("{:?}", r);
 }
 
+// api
+
 #[derive(Deserialize, Serialize, Debug)]
 pub struct APIResult<T> {
     #[serde(default)]
@@ -193,6 +198,8 @@ pub async fn get_bili_client(
     let form_param = [("oauthKey", oauth_key)];
     let resp = client
         .post("https://passport.bilibili.com/qrcode/getLoginInfo")
+        .header(USER_AGENT, UA)
+        .header("referer", "https://passport.bilibili.com/login")
         .form(&form_param)
         .send()
         .await
@@ -223,7 +230,7 @@ pub async fn get_bili_client(
 
     let token = if r.status {
         let token = check_cookie(jar.as_ref())?;
-        //save token.bk
+        //save token
         std::fs::write(TOKEN_PATH, cookies).map_err(|e| anyhow!("{}", e));
 
         token
