@@ -268,10 +268,7 @@ pub async fn send_barrage(
         .client
         .post("https://api.live.bilibili.com/msg/send")
         .header(USER_AGENT, UA)
-        .header(
-            reqwest::header::REFERER,
-            format!("https://live.bilibili.com/{}", room_id),
-        )
+        .header(reqwest::header::REFERER, "https://live.bilibili.com")
         .form(&param)
         .send()
         .await
