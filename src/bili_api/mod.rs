@@ -336,3 +336,46 @@ async fn test_ban_user() {
     let r = ban_user(&client, "421295", "386121455", 1).await;
     println!("{:?}", r)
 }
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct FollowUser {
+    pub mid: u32,
+    pub uname: String,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct FollowResult {
+    pub list: Vec<FollowUser>,
+    pub total: u32,
+}
+
+pub async fn get_some_followings(
+    api_client: &APIClient,
+    uid: &str,
+    page: u32,
+    page_size: u32,
+) -> Result<APIResult<FollowResult>, Error> {
+    let resp = api_client
+        .client
+        .get(format!(
+            "https://api.bilibili.com/x/relation/same/followings?vmid={}&ps={}&pn={}",
+            uid, page_size, page
+        ))
+        .header(USER_AGENT, UA)
+        .send()
+        .await
+        .map_err(|e| anyhow!("{}", e))?;
+
+    let r = resp
+        .json::<APIResult<FollowResult>>()
+        .await
+        .map_err(|e| anyhow!("{}", e))?;
+    Ok(r)
+}
+
+#[tokio::test]
+async fn test_get_some_followings() {
+    let client = get_client().await.unwrap();
+    let r = get_some_followings(&client, "2", 1, 50).await;
+    println!("{:?}", r);
+}
