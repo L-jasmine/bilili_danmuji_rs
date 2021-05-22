@@ -4,10 +4,84 @@ use std::io::{BufRead, Cursor};
 use std::io::{Read, Seek};
 use thiserror::Error;
 
+pub mod notification_msg {
+    use serde::de::Error;
+    use serde::{Deserialize, Deserializer, Serialize};
+    use serde_json::Value;
+
+    #[derive(Deserialize, Serialize, Debug)]
+    #[serde(tag = "cmd")]
+    pub enum NotificationMsg {
+        DANMU_MSG { info: DanmuMsg },
+        ENTRY_EFFECT { data: User },
+        INTERACT_WORD { data: User },
+        NOTICE_MSG {},
+        STOP_LIVE_ROOM_LIST {},
+    }
+
+    #[derive(Serialize, Debug)]
+    pub struct DanmuMsg {
+        pub uid: u32,
+        pub uname: String,
+
+        pub card_lv: u32,
+        pub card_name: String,
+        pub card_owner_uid: u32,
+        pub card_owner_name: String,
+
+        pub text: String,
+    }
+
+    impl<'de> Deserialize<'de> for DanmuMsg {
+        fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where
+            D: serde::Deserializer<'de>,
+        {
+            let info = serde_json::Value::deserialize(deserializer)?;
+            match info {
+                Value::Array(ref info) => match info.as_slice() {
+                    [_, Value::String(text), Value::Array(user), Value::Array(up), ..] => {
+                        let uid = user.get(0).and_then(|v| v.as_u64()).unwrap_or(0) as u32;
+                        let uname = user
+                            .get(1)
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("")
+                            .to_string();
+
+                        let card_lv = up.get(0).and_then(|v| v.as_u64()).unwrap_or(0) as u32;
+                        let card_name =
+                            up.get(1).and_then(|v| v.as_str()).unwrap_or("").to_string();
+                        let up_uid = up.last().and_then(|v| v.as_u64()).unwrap_or(0) as u32;
+                        let up_name = up.get(2).and_then(|v| v.as_str()).unwrap_or("").to_string();
+                        Ok(DanmuMsg {
+                            uid,
+                            uname,
+                            card_lv,
+                            card_name,
+                            card_owner_uid: up_uid,
+                            card_owner_name: up_name,
+                            text: text.to_string(),
+                        })
+                    }
+                    _ => Err(Error::custom("info format error")),
+                },
+                _ => Err(Error::custom("info type error")),
+            }
+        }
+    }
+
+    #[derive(Deserialize, Serialize, Debug)]
+    pub struct User {
+        pub uid: u32,
+        #[serde(default)]
+        pub uname: String,
+    }
+}
+
 #[derive(Debug)]
 pub enum ServerLiveMessage {
     LoginAck,
-    Notification(String),
+    Notification(notification_msg::NotificationMsg),
     ServerHeartBeat,
 }
 
@@ -56,8 +130,8 @@ pub enum MsgDecodeError {
     InflateError(String),
     #[error("undefine msg v={pkg_v:?} type={pkg_type:?}")]
     UndefinedMsg { pkg_v: u16, pkg_type: u32 },
-    #[error("body is not utf8 string")]
-    NotUtf8Body,
+    #[error("decode body is error {0}")]
+    DecodeBodyError(String),
 }
 
 pub fn decode_from_server(data: Vec<u8>) -> Result<ServerLiveMessage, MsgDecodeError> {
@@ -98,9 +172,11 @@ pub fn decode_from_server(data: Vec<u8>) -> Result<ServerLiveMessage, MsgDecodeE
 
         return match package_type {
             3 => Ok(ServerLiveMessage::ServerHeartBeat),
-            5 => Ok(ServerLiveMessage::Notification(
-                String::from_utf8(package_body).map_err(|e| MsgDecodeError::NotUtf8Body)?,
-            )),
+            5 => {
+                let notification_msg = serde_json::from_slice(package_body.as_slice())
+                    .map_err(|e| MsgDecodeError::DecodeBodyError(e.to_string()))?;
+                Ok(ServerLiveMessage::Notification(notification_msg))
+            }
             8 => Ok(ServerLiveMessage::LoginAck),
             _ => Err(MsgDecodeError::UndefinedMsg {
                 pkg_v: package_version,
@@ -116,4 +192,17 @@ fn test_msg_decode() {
     v.write_i8(1);
     v.write_i8(2);
     println!("{:?}", v)
+}
+
+#[test]
+fn test_let_vec() {
+    let v = vec![1, 2, 3, 4];
+    match v.as_slice() {
+        [_, v1, v2, ..] => {
+            println!("{} {}", v1, v2)
+        }
+        _ => {
+            println!("xx")
+        }
+    };
 }

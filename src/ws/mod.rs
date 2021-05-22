@@ -1,5 +1,6 @@
 mod message;
 
+use crate::ws::message::notification_msg::NotificationMsg;
 use crate::ws::message::{ClientLiveMessage, MsgDecodeError, ServerLiveMessage};
 use anyhow::Error;
 use futures_util::stream::{SplitSink, SplitStream};
@@ -76,7 +77,17 @@ async fn loop_handle_msg(
             }
             Message::Binary(bin) => match message::decode_from_server(bin) {
                 Ok(msg) => {
-                    debug!("recv msg {:?}", msg);
+                    match msg {
+                        ServerLiveMessage::LoginAck => {
+                            debug!("LoginAck");
+                        }
+                        ServerLiveMessage::Notification(_) => {
+                            debug!("Notification");
+                        }
+                        ServerLiveMessage::ServerHeartBeat => {
+                            debug!("ServerHeartBeat");
+                        }
+                    }
                     wx.send(msg).await.map_err(|e| anyhow!("{:?}", e))?;
                 }
                 Err(e) => {
@@ -103,9 +114,23 @@ async fn client_test() {
             ServerLiveMessage::LoginAck => {
                 info!("login ack")
             }
-            ServerLiveMessage::Notification(notification) => {
-                info!("notification: {}", notification)
-            }
+            ServerLiveMessage::Notification(notification) => match notification {
+                NotificationMsg::DANMU_MSG { info: msg } => {
+                    info!("弹幕: {:?}", msg);
+                }
+                NotificationMsg::ENTRY_EFFECT { data } => {
+                    info!("舰长进入直播间: {:?}", data);
+                }
+                NotificationMsg::INTERACT_WORD { data } => {
+                    info!("进入直播间: {:?}", data);
+                }
+                NotificationMsg::NOTICE_MSG {} => {
+                    info!("NOTICE_MSG");
+                }
+                NotificationMsg::STOP_LIVE_ROOM_LIST {} => {
+                    info!("STOP_LIVE_ROOM_LIST");
+                }
+            },
             ServerLiveMessage::ServerHeartBeat => {
                 info!("heart_beat")
             }
