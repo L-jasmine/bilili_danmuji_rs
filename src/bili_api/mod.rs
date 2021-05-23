@@ -337,7 +337,7 @@ async fn test_ban_user() {
     println!("{:?}", r)
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct FollowUser {
     pub mid: u32,
     pub uname: String,
