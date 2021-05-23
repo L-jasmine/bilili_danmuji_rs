@@ -1,7 +1,7 @@
 pub mod message;
 
 pub use crate::ws::message::notification_msg::NotificationMsg;
-use crate::ws::message::{ClientLiveMessage, MsgDecodeError, ServerLiveMessage};
+pub use crate::ws::message::{ClientLiveMessage, MsgDecodeError, ServerLiveMessage};
 use anyhow::Error;
 use futures_util::stream::{SplitSink, SplitStream};
 use futures_util::{SinkExt, StreamExt};
