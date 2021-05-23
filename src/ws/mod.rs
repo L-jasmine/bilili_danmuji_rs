@@ -14,6 +14,7 @@ use tokio_tungstenite::{connect_async, MaybeTlsStream, WebSocketStream};
 use url::Url;
 
 pub struct MsgStream {
+    pub room_id: u32,
     pub rx: Receiver<ServerLiveMessage>,
     pub connect_handler: JoinHandle<Result<(), Error>>,
 }
@@ -29,6 +30,7 @@ pub async fn connect(room_id: u32) -> MsgStream {
     let (wx, rx) = tokio::sync::mpsc::channel(100);
     let connect_handler = tokio::spawn(open_client(url, room_id, wx));
     MsgStream {
+        room_id,
         rx,
         connect_handler,
     }
