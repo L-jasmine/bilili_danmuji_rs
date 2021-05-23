@@ -1,6 +1,6 @@
-mod message;
+pub mod message;
 
-use crate::ws::message::notification_msg::NotificationMsg;
+pub use crate::ws::message::notification_msg::NotificationMsg;
 use crate::ws::message::{ClientLiveMessage, MsgDecodeError, ServerLiveMessage};
 use anyhow::Error;
 use futures_util::stream::{SplitSink, SplitStream};
@@ -21,7 +21,11 @@ pub struct MsgStream {
 type WsStream = SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, Message>;
 type RsStream = SplitStream<WebSocketStream<MaybeTlsStream<TcpStream>>>;
 
-pub async fn connect(url: Url, room_id: u32) -> MsgStream {
+const BILI_CHAT_SERVER_URL: &'static str = "wss://broadcastlv.chat.bilibili.com/sub";
+
+pub async fn connect(room_id: u32) -> MsgStream {
+    let url = BILI_CHAT_SERVER_URL.parse().unwrap();
+
     let (wx, rx) = tokio::sync::mpsc::channel(100);
     let connect_handler = tokio::spawn(open_client(url, room_id, wx));
     MsgStream {
@@ -106,8 +110,7 @@ async fn loop_handle_msg(
 #[tokio::test]
 async fn client_test() {
     env_logger::init();
-    let u = "wss://broadcastlv.chat.bilibili.com/sub".parse().unwrap();
-    let mut s = connect(u, 421296).await;
+    let mut s = connect(421296).await;
 
     while let Some(x) = s.rx.recv().await {
         match x {
