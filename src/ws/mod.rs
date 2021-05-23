@@ -5,6 +5,7 @@ pub use crate::ws::message::{ClientLiveMessage, MsgDecodeError, ServerLiveMessag
 use anyhow::Error;
 use futures_util::stream::{SplitSink, SplitStream};
 use futures_util::{SinkExt, StreamExt};
+use std::collections::LinkedList;
 use tokio::net::TcpStream;
 use tokio::sync::mpsc::{Receiver, Sender};
 use tokio::task::JoinHandle;
@@ -75,26 +76,29 @@ async fn loop_handle_msg(
     client: &mut RsStream,
     wx: Sender<ServerLiveMessage>,
 ) -> Result<(), Error> {
+    let mut msg_list = LinkedList::new();
     while let Some(msg) = client.next().await {
         let msg = msg?;
         match msg {
             Message::Text(text) => {
                 debug!("recv text {}", text)
             }
-            Message::Binary(bin) => match message::decode_from_server(bin) {
-                Ok(msg) => {
-                    match msg {
-                        ServerLiveMessage::LoginAck => {
-                            debug!("LoginAck");
+            Message::Binary(bin) => match message::decode_from_server(bin, &mut msg_list) {
+                Ok(_) => {
+                    while let Some(msg) = msg_list.pop_front() {
+                        match msg {
+                            ServerLiveMessage::LoginAck => {
+                                debug!("LoginAck");
+                            }
+                            ServerLiveMessage::Notification(_) => {
+                                debug!("Notification");
+                            }
+                            ServerLiveMessage::ServerHeartBeat => {
+                                debug!("ServerHeartBeat");
+                            }
                         }
-                        ServerLiveMessage::Notification(_) => {
-                            debug!("Notification");
-                        }
-                        ServerLiveMessage::ServerHeartBeat => {
-                            debug!("ServerHeartBeat");
-                        }
+                        wx.send(msg).await.map_err(|e| anyhow!("{:?}", e))?;
                     }
-                    wx.send(msg).await.map_err(|e| anyhow!("{:?}", e))?;
                 }
                 Err(e) => {
                     error!("handler msg {:?}", e)

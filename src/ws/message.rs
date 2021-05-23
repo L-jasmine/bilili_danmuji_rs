@@ -1,4 +1,5 @@
 use byteorder::{NetworkEndian, ReadBytesExt, WriteBytesExt};
+use std::collections::LinkedList;
 use std::io::Write;
 use std::io::{BufRead, Cursor};
 use std::io::{Read, Seek};
@@ -134,15 +135,19 @@ pub enum MsgDecodeError {
     DecodeBodyError(String),
 }
 
-pub fn decode_from_server(data: Vec<u8>) -> Result<ServerLiveMessage, MsgDecodeError> {
+pub fn decode_from_server(
+    data: Vec<u8>,
+    result_list: &mut LinkedList<ServerLiveMessage>,
+) -> Result<(), MsgDecodeError> {
+    let mut buff_len = data.len();
     let mut buff = Cursor::new(data);
     'start: loop {
         let package_length = buff
             .read_u32::<NetworkEndian>()
-            .map_err(|_| MsgDecodeError::BadHeader)?;
+            .map_err(|_| MsgDecodeError::BadHeader)? as usize;
         let package_head_length = buff
             .read_u16::<NetworkEndian>()
-            .map_err(|_| MsgDecodeError::BadHeader)?;
+            .map_err(|_| MsgDecodeError::BadHeader)? as usize;
         let package_version = buff
             .read_u16::<NetworkEndian>()
             .map_err(|_| MsgDecodeError::BadHeader)?;
@@ -153,12 +158,14 @@ pub fn decode_from_server(data: Vec<u8>) -> Result<ServerLiveMessage, MsgDecodeE
             .read_u32::<NetworkEndian>()
             .map_err(|_| MsgDecodeError::BadHeader)?;
 
-        let mut package_body = vec![];
-        buff.read_to_end(&mut package_body);
-
         if package_version == 2 {
+            let mut package_body = vec![];
+            buff.read_to_end(&mut package_body);
+
             let new_data = inflate::inflate_bytes_zlib(package_body.as_slice())
                 .map_err(|e| MsgDecodeError::InflateError(e))?;
+
+            buff_len = new_data.len();
             buff = Cursor::new(new_data);
             // tail call
             continue 'start;
@@ -170,18 +177,30 @@ pub fn decode_from_server(data: Vec<u8>) -> Result<ServerLiveMessage, MsgDecodeE
             });
         }
 
-        return match package_type {
-            3 => Ok(ServerLiveMessage::ServerHeartBeat),
+        let package_body_len = package_length - package_head_length;
+        let mut package_body = vec![0; package_body_len];
+        buff.read(package_body.as_mut_slice());
+
+        match package_type {
+            3 => result_list.push_back(ServerLiveMessage::ServerHeartBeat),
             5 => {
                 let notification_msg = serde_json::from_slice(package_body.as_slice())
                     .map_err(|e| MsgDecodeError::DecodeBodyError(e.to_string()))?;
-                Ok(ServerLiveMessage::Notification(notification_msg))
+                result_list.push_back(ServerLiveMessage::Notification(notification_msg))
             }
-            8 => Ok(ServerLiveMessage::LoginAck),
-            _ => Err(MsgDecodeError::UndefinedMsg {
-                pkg_v: package_version,
-                pkg_type: package_type,
-            }),
+            8 => result_list.push_back(ServerLiveMessage::LoginAck),
+            _ => {
+                return Err(MsgDecodeError::UndefinedMsg {
+                    pkg_v: package_version,
+                    pkg_type: package_type,
+                })
+            }
         };
+        if buff.position() < buff_len as u64 {
+            continue 'start;
+        } else {
+            break 'start;
+        }
     }
+    Ok(())
 }
