@@ -18,6 +18,12 @@ pub mod notification_msg {
         INTERACT_WORD { data: User },
         NOTICE_MSG {},
         STOP_LIVE_ROOM_LIST {},
+        SEND_GIFT { data: OneGift },
+        COMBO_SEND { data: BatchGift },
+        ONLINE_RANK_COUNT {},
+        ONLINE_RANK_V2 {},
+        GUARD_BUY { data: GuardBuy },
+        ROOM_REAL_TIME_MESSAGE_UPDATE {},
     }
 
     #[derive(Serialize, Debug)]
@@ -75,6 +81,36 @@ pub mod notification_msg {
     pub struct User {
         pub uid: u32,
         #[serde(default)]
+        pub uname: String,
+    }
+
+    #[derive(Deserialize, Serialize, Debug)]
+    pub struct GuardBuy {
+        pub gift_id: u32,
+        pub gift_name: String,
+        pub guard_level: u32,
+        pub num: u32,
+        pub uid: u32,
+        pub username: String,
+    }
+
+    #[derive(Deserialize, Serialize, Debug)]
+    pub struct OneGift {
+        #[serde(rename = "giftId")]
+        pub gift_id: u32,
+        #[serde(rename = "giftName")]
+        pub gift_name: String,
+        pub num: u32,
+        pub uid: u32,
+        pub uname: String,
+    }
+
+    #[derive(Deserialize, Serialize, Debug)]
+    pub struct BatchGift {
+        pub gift_id: u32,
+        pub gift_name: String,
+        pub total_num: u32,
+        pub uid: u32,
         pub uname: String,
     }
 }

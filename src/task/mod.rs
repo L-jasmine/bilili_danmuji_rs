@@ -23,6 +23,24 @@ pub async fn run(mut ws_client: MsgStream, api_client: APIClient) {
                 NotificationMsg::STOP_LIVE_ROOM_LIST {} => {
                     debug!("STOP_LIVE_ROOM_LIST");
                 }
+                NotificationMsg::SEND_GIFT { data: gift } => {
+                    info!("礼物: {:?}", gift);
+                }
+                NotificationMsg::COMBO_SEND { data: gift } => {
+                    info!("礼物连击: {:?}", gift);
+                }
+                NotificationMsg::ONLINE_RANK_COUNT {} => {
+                    info!("ONLINE_RANK_COUNT");
+                }
+                NotificationMsg::ONLINE_RANK_V2 {} => {
+                    info!("ONLINE_RANK_V2");
+                }
+                NotificationMsg::GUARD_BUY { data: guard_buy } => {
+                    info!("购买大航海: {:?}", guard_buy);
+                }
+                NotificationMsg::ROOM_REAL_TIME_MESSAGE_UPDATE {} => {
+                    debug!("ROOM_REAL_TIME_MESSAGE_UPDATE")
+                }
             },
             ServerLiveMessage::ServerHeartBeat => {
                 debug!("heart_beat")
