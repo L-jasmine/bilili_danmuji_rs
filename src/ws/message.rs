@@ -185,24 +185,3 @@ pub fn decode_from_server(data: Vec<u8>) -> Result<ServerLiveMessage, MsgDecodeE
         };
     }
 }
-
-#[test]
-fn test_msg_decode() {
-    let mut v = Vec::<u8>::with_capacity(10);
-    v.write_i8(1);
-    v.write_i8(2);
-    println!("{:?}", v)
-}
-
-#[test]
-fn test_let_vec() {
-    let v = vec![1, 2, 3, 4];
-    match v.as_slice() {
-        [_, v1, v2, ..] => {
-            println!("{} {}", v1, v2)
-        }
-        _ => {
-            println!("xx")
-        }
-    };
-}
