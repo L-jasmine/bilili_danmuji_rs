@@ -170,17 +170,30 @@ pub async fn get_login_url() -> Result<APIResult<LoginUrl>, Error> {
 }
 
 pub fn print_login_qrcode(login_url: &str) {
-    use qrcode::render::unicode;
+    use qrcode::render::svg;
     use qrcode::QrCode;
 
     let code = QrCode::new(login_url).unwrap();
-    let image = code
-        .render::<unicode::Dense1x2>()
-        .dark_color(unicode::Dense1x2::Light)
-        .light_color(unicode::Dense1x2::Dark)
-        // .quiet_zone(true)
-        .build();
-    println!("===【 手机app扫码登陆 】===\n\n{}", image);
+
+    {
+        let image = code
+            .render::<char>()
+            .light_color('#')
+            .dark_color(' ')
+            .module_dimensions(2, 1)
+            .build();
+        println!("{}\n===【 手机app扫描上方二维码登陆 】===", image,);
+    }
+    {
+        println!("===【{} {} {}】===", "或者双击打开", "qr.svg", "扫码登陆");
+        let image = code
+            .render()
+            .min_dimensions(200, 200)
+            .dark_color(svg::Color("#000000"))
+            .light_color(svg::Color("#ffffff"))
+            .build();
+        std::fs::write("qr.svg", image.as_str()).unwrap();
+    }
 }
 
 pub async fn get_bili_client(
