@@ -17,23 +17,13 @@ pub async fn run(mut ws_client: MsgStream, api_client: APIClient) {
                 NotificationMsg::INTERACT_WORD { data } => {
                     info!("进入直播间: {:?}", data);
                 }
-                NotificationMsg::NOTICE_MSG {} => {
-                    info!("NOTICE_MSG");
-                }
-                NotificationMsg::STOP_LIVE_ROOM_LIST {} => {
-                    debug!("STOP_LIVE_ROOM_LIST");
-                }
+                NotificationMsg::NOTICE_MSG {} => {}
+                NotificationMsg::STOP_LIVE_ROOM_LIST {} => {}
                 NotificationMsg::SEND_GIFT { data: gift } => {
                     info!("礼物: {:?}", gift);
                 }
                 NotificationMsg::COMBO_SEND { data: gift } => {
                     info!("礼物连击: {:?}", gift);
-                }
-                NotificationMsg::ONLINE_RANK_COUNT {} => {
-                    info!("ONLINE_RANK_COUNT");
-                }
-                NotificationMsg::ONLINE_RANK_V2 {} => {
-                    info!("ONLINE_RANK_V2");
                 }
                 NotificationMsg::GUARD_BUY { data: guard_buy } => {
                     info!("购买大航海: {:?}", guard_buy);
@@ -41,6 +31,8 @@ pub async fn run(mut ws_client: MsgStream, api_client: APIClient) {
                 NotificationMsg::ROOM_REAL_TIME_MESSAGE_UPDATE {} => {}
                 NotificationMsg::HOT_RANK_CHANGED {} => {}
                 NotificationMsg::ONLINE_RANK_TOP3 {} => {}
+                NotificationMsg::ONLINE_RANK_COUNT {} => {}
+                NotificationMsg::ONLINE_RANK_V2 {} => {}
                 NotificationMsg::PK_BATTLE_END {} => {}
                 NotificationMsg::PK_BATTLE_SETTLE_USER {} => {}
                 NotificationMsg::PK_BATTLE_SETTLE_V2 {} => {}
