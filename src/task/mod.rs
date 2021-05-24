@@ -38,9 +38,17 @@ pub async fn run(mut ws_client: MsgStream, api_client: APIClient) {
                 NotificationMsg::GUARD_BUY { data: guard_buy } => {
                     info!("购买大航海: {:?}", guard_buy);
                 }
-                NotificationMsg::ROOM_REAL_TIME_MESSAGE_UPDATE {} => {
-                    debug!("ROOM_REAL_TIME_MESSAGE_UPDATE")
-                }
+                NotificationMsg::ROOM_REAL_TIME_MESSAGE_UPDATE {} => {}
+                NotificationMsg::HOT_RANK_CHANGED {} => {}
+                NotificationMsg::ONLINE_RANK_TOP3 {} => {}
+                NotificationMsg::PK_BATTLE_END {} => {}
+                NotificationMsg::PK_BATTLE_SETTLE_USER {} => {}
+                NotificationMsg::PK_BATTLE_SETTLE_V2 {} => {}
+                NotificationMsg::PK_BATTLE_SETTLE {} => {}
+                NotificationMsg::PK_BATTLE_PRE_NEW {} => {}
+                NotificationMsg::PK_BATTLE_START_NEW {} => {}
+                NotificationMsg::PK_BATTLE_PROCESS_NEW {} => {}
+                NotificationMsg::PK_BATTLE_PROCESS {} => {}
             },
             ServerLiveMessage::ServerHeartBeat => {
                 debug!("heart_beat")

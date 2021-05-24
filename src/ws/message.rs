@@ -20,10 +20,21 @@ pub mod notification_msg {
         STOP_LIVE_ROOM_LIST {},
         SEND_GIFT { data: OneGift },
         COMBO_SEND { data: BatchGift },
+        GUARD_BUY { data: GuardBuy },
+
+        ROOM_REAL_TIME_MESSAGE_UPDATE {},
+        HOT_RANK_CHANGED {},
+        ONLINE_RANK_TOP3 {},
         ONLINE_RANK_COUNT {},
         ONLINE_RANK_V2 {},
-        GUARD_BUY { data: GuardBuy },
-        ROOM_REAL_TIME_MESSAGE_UPDATE {},
+        PK_BATTLE_END {},
+        PK_BATTLE_SETTLE_USER {},
+        PK_BATTLE_SETTLE_V2 {},
+        PK_BATTLE_SETTLE {},
+        PK_BATTLE_PRE_NEW {},
+        PK_BATTLE_START_NEW {},
+        PK_BATTLE_PROCESS_NEW {},
+        PK_BATTLE_PROCESS {},
     }
 
     #[derive(Serialize, Debug)]
