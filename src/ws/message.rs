@@ -93,6 +93,8 @@ pub mod notification_msg {
         pub uid: u32,
         #[serde(default)]
         pub uname: String,
+        #[serde(default)]
+        pub copy_writing: String,
     }
 
     #[derive(Deserialize, Serialize, Debug)]
@@ -111,6 +113,7 @@ pub mod notification_msg {
         pub gift_id: u32,
         #[serde(rename = "giftName")]
         pub gift_name: String,
+        pub total_coin: u32,
         pub num: u32,
         pub uid: u32,
         pub uname: String,
@@ -121,6 +124,7 @@ pub mod notification_msg {
         pub gift_id: u32,
         pub gift_name: String,
         pub total_num: u32,
+        pub combo_total_coin: u32,
         pub uid: u32,
         pub uname: String,
     }
