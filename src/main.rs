@@ -13,9 +13,19 @@ fn logger_config() {
     use log4rs::append::console::ConsoleAppender;
     use log4rs::append::file::FileAppender;
     use log4rs::config::{Appender, Config, Logger, Root};
+    use log4rs::encode::pattern::PatternEncoder;
 
-    let stdout = ConsoleAppender::builder().build();
-    let file_log = FileAppender::builder().build("log").unwrap();
+    let stdout = ConsoleAppender::builder()
+        .encoder(Box::new(PatternEncoder::new(
+            "[{d(%Y-%m-%d %H:%M:%S)}] [{l}] {M} - {m} {n}",
+        )))
+        .build();
+    let file_log = FileAppender::builder()
+        .encoder(Box::new(PatternEncoder::new(
+            "[{d(%Y-%m-%d %H:%M:%S)}] [{l}] {M} - {m} {n}",
+        )))
+        .build("log")
+        .unwrap();
 
     let config = Config::builder()
         .appender(Appender::builder().build("stdout", Box::new(stdout)))
