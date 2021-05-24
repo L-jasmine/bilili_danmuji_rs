@@ -83,27 +83,25 @@ async fn loop_handle_msg(
             Message::Text(text) => {
                 debug!("recv text {}", text)
             }
-            Message::Binary(bin) => match message::decode_from_server(bin, &mut msg_list) {
-                Ok(_) => {
-                    while let Some(msg) = msg_list.pop_front() {
-                        match msg {
-                            ServerLiveMessage::LoginAck => {
-                                debug!("LoginAck");
-                            }
-                            ServerLiveMessage::Notification(_) => {
-                                debug!("Notification");
-                            }
-                            ServerLiveMessage::ServerHeartBeat => {
-                                debug!("ServerHeartBeat");
-                            }
-                        }
-                        wx.send(msg).await.map_err(|e| anyhow!("{:?}", e))?;
-                    }
-                }
-                Err(e) => {
+            Message::Binary(bin) => {
+                if let Err(e) = message::decode_from_server(bin, &mut msg_list) {
                     error!("handler msg {:?}", e)
                 }
-            },
+                while let Some(msg) = msg_list.pop_front() {
+                    match msg {
+                        ServerLiveMessage::LoginAck => {
+                            debug!("LoginAck");
+                        }
+                        ServerLiveMessage::Notification(_) => {
+                            debug!("Notification");
+                        }
+                        ServerLiveMessage::ServerHeartBeat => {
+                            debug!("ServerHeartBeat");
+                        }
+                    }
+                    wx.send(msg).await.map_err(|e| anyhow!("{:?}", e))?;
+                }
+            }
             Message::Ping(_) => debug!("ws ping"),
             Message::Pong(_) => debug!("ws pong"),
             Message::Close(_) => warn!("ws close"),
