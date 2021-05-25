@@ -63,7 +63,7 @@ async fn connect_keep(client: &mut WsStream, room_id: u32) -> Result<(), Error> 
         .await
         .map_err(|e| anyhow!("{:?}", e))?;
     loop {
-        info!("heartbeat");
+        debug!("heartbeat");
         client
             .send(Message::Binary(ClientLiveMessage::ClientHeartBeat.encode()))
             .await
