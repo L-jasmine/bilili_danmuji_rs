@@ -14,7 +14,7 @@ pub mod notification_msg {
     #[serde(tag = "cmd")]
     pub enum NotificationMsg {
         DANMU_MSG { info: DanmuMsg },
-        ENTRY_EFFECT { data: User },
+        ENTRY_EFFECT { data: EntryEffect },
         INTERACT_WORD { data: User },
         NOTICE_MSG {},
         STOP_LIVE_ROOM_LIST {},
@@ -88,13 +88,30 @@ pub mod notification_msg {
         }
     }
 
+    #[derive(Deserialize, Serialize, Default, Debug)]
+    pub struct EntryEffect {
+        #[serde(default)]
+        pub uid: u32,
+        #[serde(default)]
+        pub copy_writing: String,
+    }
+
     #[derive(Deserialize, Serialize, Debug)]
     pub struct User {
+        #[serde(default)]
         pub uid: u32,
         #[serde(default)]
         pub uname: String,
         #[serde(default)]
-        pub copy_writing: String,
+        pub fans_medal: Medal,
+    }
+
+    #[derive(Deserialize, Serialize, Default, Debug)]
+    pub struct Medal {
+        pub anchor_roomid: u32,
+        pub guard_level: u32,
+        pub medal_level: u32,
+        pub medal_name: String,
     }
 
     #[derive(Deserialize, Serialize, Debug)]
