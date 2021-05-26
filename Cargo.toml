@@ -11,7 +11,7 @@ futures-util = { version = "0.3" , default-features = false, features = ["async-
 tokio = { version = "1.0.0", default-features = false, features = ["io-std", "macros", "net", "rt-multi-thread", "time"] }
 tokio-tungstenite = { version = "0.14", features = ["rustls-tls"] }
 url = "2.0.0"
-reqwest = { version = "0.11", features = ["json","cookies"] }
+reqwest = { version = "0.11", features = ["json","cookies","rustls-tls"], default-features = false }
 
 log = "0.4"
 log4rs = "1"
