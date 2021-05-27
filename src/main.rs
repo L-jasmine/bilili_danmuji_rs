@@ -55,4 +55,6 @@ async fn main() {
     let ws_client = ws::connect(room_id).await;
 
     task::run(ws_client, api_client).await;
+
+    info!("exit")
 }

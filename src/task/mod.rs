@@ -47,4 +47,5 @@ pub async fn run(mut ws_client: MsgStream, api_client: APIClient) {
             }
         }
     }
+    warn!("ws client recv none,loop stop")
 }
