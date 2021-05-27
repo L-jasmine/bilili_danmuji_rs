@@ -1,18 +1,20 @@
-#[macro_use]
-extern crate anyhow;
-#[macro_use]
-extern crate lazy_static;
-#[macro_use]
-extern crate log;
+use serde::{Deserialize, Serialize};
 
-use std::env::args;
+lazy_static! {
+    pub static ref APP_CONFIG: AppConfig = init_config();
+}
 
-pub mod bili_api;
-pub mod config;
-pub mod task;
-pub mod ws;
+#[derive(Deserialize, Serialize, Debug)]
+pub struct AppConfig {
+    pub room_id: u32,
+}
 
-fn logger_config() {
+pub fn init_config() -> AppConfig {
+    let log_str = std::fs::read_to_string("config.json").expect("no config.json");
+    serde_json::from_str(log_str.as_str()).unwrap()
+}
+
+pub fn logger_config() {
     use log4rs::append::console::ConsoleAppender;
     use log4rs::append::file::FileAppender;
     use log4rs::config::{Appender, Config, Logger, Root};
@@ -46,16 +48,4 @@ fn logger_config() {
         .unwrap();
 
     log4rs::init_config(config).unwrap();
-}
-
-#[tokio::main]
-async fn main() {
-    config::logger_config();
-    let room_id = config::APP_CONFIG.room_id;
-    let api_client = bili_api::get_client().await.unwrap();
-    let ws_client = ws::connect(room_id).await;
-
-    task::run(ws_client, api_client).await;
-
-    info!("exit")
 }

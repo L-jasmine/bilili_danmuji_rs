@@ -27,6 +27,8 @@ byteorder = "1"
 anyhow = "1.0"
 thiserror = "1.0"
 
+lazy_static = "1.4.0"
+
 #qrcode
 qrcode = "0.12"
 

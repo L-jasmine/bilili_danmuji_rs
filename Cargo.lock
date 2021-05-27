@@ -67,6 +67,7 @@ dependencies = [
  "futures-util",
  "gzip",
  "inflate",
+ "lazy_static",
  "log",
  "log4rs",
  "qrcode",
