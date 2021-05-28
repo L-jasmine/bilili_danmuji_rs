@@ -50,7 +50,7 @@ pub async fn open_client(
             loop_handle_msg(&mut r_stream, wx.clone())
         );
         info!("client close {:?} {:?}", r.0, r.1);
-        tokio::time::sleep(Duration::from_millis(500)).await;
+        tokio::time::sleep(Duration::from_secs(300)).await;
         info!("reconnect start");
     }
 }
