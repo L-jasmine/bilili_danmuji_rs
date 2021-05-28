@@ -16,7 +16,7 @@ pub mod notification_msg {
         DANMU_MSG { info: DanmuMsg },
         ENTRY_EFFECT { data: EntryEffect },
         ENTRY_EFFECT_MUST_RECEIVE {},
-        INTERACT_WORD { data: User },
+        INTERACT_WORD { data: Interact },
         NOTICE_MSG {},
         STOP_LIVE_ROOM_LIST {},
         SEND_GIFT { data: OneGift },
@@ -99,13 +99,21 @@ pub mod notification_msg {
     }
 
     #[derive(Deserialize, Serialize, Debug)]
-    pub struct User {
+    pub struct Interact {
         #[serde(default)]
         pub uid: u32,
         #[serde(default)]
         pub uname: String,
         #[serde(default)]
         pub fans_medal: Medal,
+        /**
+        1. 进入直播间
+        2. 关注直播间
+        3. 分享直播间
+        4. 未知
+        5. 互关
+        */
+        pub msg_type: u32,
     }
 
     #[derive(Deserialize, Serialize, Default, Debug)]
