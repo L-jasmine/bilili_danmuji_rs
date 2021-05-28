@@ -117,47 +117,7 @@ async fn client_test() {
     let mut s = connect(421296).await;
 
     while let Some(x) = s.rx.recv().await {
-        match x {
-            ServerLiveMessage::LoginAck => {
-                info!("login ack")
-            }
-            ServerLiveMessage::Notification(notification) => match notification {
-                NotificationMsg::DANMU_MSG { info: msg } => {
-                    info!("弹幕: {:?}", msg);
-                }
-                NotificationMsg::ENTRY_EFFECT { data } => {
-                    info!("舰长进入直播间: {:?}", data);
-                }
-                NotificationMsg::INTERACT_WORD { data } => {
-                    info!("进入直播间: {:?}", data);
-                }
-                NotificationMsg::NOTICE_MSG {} => {
-                    info!("NOTICE_MSG");
-                }
-                NotificationMsg::STOP_LIVE_ROOM_LIST {} => {
-                    info!("STOP_LIVE_ROOM_LIST");
-                }
-                NotificationMsg::SEND_GIFT { .. } => {}
-                NotificationMsg::COMBO_SEND { .. } => {}
-                NotificationMsg::GUARD_BUY { .. } => {}
-                NotificationMsg::ROOM_REAL_TIME_MESSAGE_UPDATE { .. } => {}
-                NotificationMsg::HOT_RANK_CHANGED { .. } => {}
-                NotificationMsg::ONLINE_RANK_TOP3 { .. } => {}
-                NotificationMsg::ONLINE_RANK_COUNT { .. } => {}
-                NotificationMsg::ONLINE_RANK_V2 { .. } => {}
-                NotificationMsg::PK_BATTLE_END { .. } => {}
-                NotificationMsg::PK_BATTLE_SETTLE_USER { .. } => {}
-                NotificationMsg::PK_BATTLE_SETTLE_V2 { .. } => {}
-                NotificationMsg::PK_BATTLE_SETTLE { .. } => {}
-                NotificationMsg::PK_BATTLE_PRE_NEW { .. } => {}
-                NotificationMsg::PK_BATTLE_START_NEW { .. } => {}
-                NotificationMsg::PK_BATTLE_PROCESS_NEW { .. } => {}
-                NotificationMsg::PK_BATTLE_PROCESS { .. } => {}
-            },
-            ServerLiveMessage::ServerHeartBeat => {
-                info!("heart_beat")
-            }
-        }
+        info!("{:?}", x);
     }
 }
 
