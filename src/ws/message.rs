@@ -164,16 +164,31 @@ pub enum ServerLiveMessage {
     ServerHeartBeat,
 }
 
+#[derive(Debug, Clone)]
+pub struct WsLogin {
+    pub room_id: u32,
+    pub uid: u32,
+    pub key: String,
+}
+
 pub enum ClientLiveMessage {
-    Login { room_id: u32 },
+    Login(WsLogin),
     ClientHeartBeat,
 }
 
 impl ClientLiveMessage {
-    pub fn encode(self) -> Vec<u8> {
+    pub fn encode(&self) -> Vec<u8> {
         match self {
-            ClientLiveMessage::Login { room_id } => {
-                let payload = serde_json::json!({ "roomid": room_id }).to_string();
+            ClientLiveMessage::Login(WsLogin { room_id, uid, key }) => {
+                let uid = if *uid > 0 { Some(*uid) } else { None };
+                let payload = serde_json::json!({
+                        "uid": uid,
+                        "roomid": *room_id,
+                        "protover": 2,
+                        "platform": "web",
+                        "type": 2,
+                        "key": key})
+                .to_string();
                 let payload_len = payload.len();
                 let package_len = 16 + payload_len;
 
@@ -271,7 +286,7 @@ pub fn decode_from_server(
                 return Err(MsgDecodeError::UndefinedMsg {
                     pkg_v: package_version,
                     pkg_type: package_type,
-                })
+                });
             }
         };
         if buff.position() < buff_len as u64 {

@@ -392,3 +392,53 @@ async fn test_get_some_followings() {
     let r = get_some_followings(&client, "2", 1, 50).await;
     println!("{:?}", r);
 }
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct DanmuInfoResult {
+    #[serde(default)]
+    pub business_id: u32,
+    #[serde(default)]
+    pub host_list: Vec<LiveHost>,
+    #[serde(default)]
+    pub max_delay: u32,
+    #[serde(default)]
+    pub refresh_rate: u32,
+    #[serde(default)]
+    pub refresh_row_factor: f32,
+    #[serde(default)]
+    pub token: String,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct LiveHost {
+    #[serde(default)]
+    pub host: String,
+    #[serde(default)]
+    pub port: u32,
+    #[serde(default)]
+    pub ws_port: u32,
+    #[serde(default)]
+    pub wss_port: u32,
+}
+
+pub async fn get_danmu_info(
+    api_client: &APIClient,
+    room_id: u32,
+) -> Result<APIResult<DanmuInfoResult>, Error> {
+    let resp = api_client
+        .client
+        .get(format!(
+            "https://api.live.bilibili.com/xlive/web-room/v1/index/getDanmuInfo?id={}&type=0",
+            room_id
+        ))
+        .header(USER_AGENT, UA)
+        .send()
+        .await
+        .map_err(|e| anyhow!("{}", e))?;
+
+    let r = resp
+        .json::<APIResult<DanmuInfoResult>>()
+        .await
+        .map_err(|e| anyhow!("{}", e))?;
+    Ok(r)
+}
