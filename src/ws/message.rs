@@ -44,10 +44,10 @@ pub mod notification_msg {
         pub uid: u32,
         pub uname: String,
 
-        pub card_lv: u32,
-        pub card_name: String,
-        pub card_owner_uid: u32,
-        pub card_owner_name: String,
+        pub medal_lv: u32,
+        pub medal_name: String,
+        pub medal_owner_uid: u32,
+        pub medal_owner_name: String,
 
         pub text: String,
     }
@@ -76,10 +76,10 @@ pub mod notification_msg {
                         Ok(DanmuMsg {
                             uid,
                             uname,
-                            card_lv,
-                            card_name,
-                            card_owner_uid: up_uid,
-                            card_owner_name: up_name,
+                            medal_lv: card_lv,
+                            medal_name: card_name,
+                            medal_owner_uid: up_uid,
+                            medal_owner_name: up_name,
                             text: text.to_string(),
                         })
                     }
