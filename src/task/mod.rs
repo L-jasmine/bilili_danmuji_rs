@@ -24,7 +24,7 @@ pub async fn run(mut ws_client: MsgStream, api_client: APIClient) {
                     3 => {
                         info!("分享直播间: {:?}", data);
                     }
-                    4 => {
+                    5 => {
                         info!("互关: {:?}", data);
                     }
                     _ => {
