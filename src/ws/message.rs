@@ -15,6 +15,7 @@ pub mod notification_msg {
     pub enum NotificationMsg {
         DANMU_MSG { info: DanmuMsg },
         ENTRY_EFFECT { data: EntryEffect },
+        ENTRY_EFFECT_MUST_RECEIVE {},
         INTERACT_WORD { data: User },
         NOTICE_MSG {},
         STOP_LIVE_ROOM_LIST {},
@@ -22,6 +23,7 @@ pub mod notification_msg {
         COMBO_SEND { data: BatchGift },
         GUARD_BUY { data: GuardBuy },
 
+        ROOM_BLOCK_MSG {},
         ROOM_REAL_TIME_MESSAGE_UPDATE {},
         HOT_RANK_CHANGED {},
         ONLINE_RANK_TOP3 {},
