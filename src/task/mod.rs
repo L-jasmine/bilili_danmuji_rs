@@ -33,7 +33,7 @@ pub async fn run(mut ws_client: MsgStream, api_client: APIClient) {
                 },
                 NotificationMsg::ENTRY_EFFECT_MUST_RECEIVE { .. } => {}
                 NotificationMsg::NOTICE_MSG { .. } => {}
-                NotificationMsg::STOP_LIVE_ROOM_LIST {} => ..,
+                NotificationMsg::STOP_LIVE_ROOM_LIST { .. } => {}
                 NotificationMsg::SEND_GIFT { data: gift } => {
                     info!("礼物: {:?}", gift);
                 }
