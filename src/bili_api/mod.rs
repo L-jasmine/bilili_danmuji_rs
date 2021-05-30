@@ -354,6 +354,7 @@ async fn test_ban_user() {
 pub struct FollowUser {
     pub mid: u32,
     pub uname: String,
+    pub mtime: u64,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -391,6 +392,40 @@ async fn test_get_some_followings() {
     let client = get_client().await.unwrap();
     let r = get_some_followings(&client, "2", 1, 50).await;
     println!("{:?}", r);
+}
+
+pub async fn search_followings(
+    api_client: &APIClient,
+    uid: u32,
+    name: &str,
+    page: u32,
+    page_size: u32,
+) -> Result<APIResult<FollowResult>, Error> {
+    let resp = api_client
+        .client
+        .get(format!(
+            "https://api.bilibili.com/x/relation/followings/search?vmid={}&name={}&ps={}&pn={}",
+            uid, name, page_size, page
+        ))
+        .header(USER_AGENT, UA)
+        .send()
+        .await
+        .map_err(|e| anyhow!("{}", e))?;
+
+    let r = resp
+        .json::<APIResult<FollowResult>>()
+        .await
+        .map_err(|e| anyhow!("{}", e))?;
+    Ok(r)
+}
+
+#[tokio::test]
+async fn test_search_followings() {
+    let client = get_client().await.unwrap();
+    let r = search_followings(&client, 2, "咬人猫", 1, 50).await;
+    if let Ok(APIResult { data: Some(x), .. }) = &r {
+        println!("{:?}", x);
+    }
 }
 
 #[derive(Deserialize, Serialize, Debug)]
