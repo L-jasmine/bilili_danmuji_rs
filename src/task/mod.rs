@@ -8,6 +8,9 @@ pub async fn run(mut ws_client: MsgStream, api_client: APIClient) {
                 debug!("login ack")
             }
             ServerLiveMessage::Notification(notification) => match notification {
+                NotificationMsg::LIVE { .. } => {
+                    info!("直播开始");
+                }
                 NotificationMsg::DANMU_MSG { info: msg } => {
                     info!("弹幕: {:?}", msg);
                 }

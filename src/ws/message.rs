@@ -13,6 +13,7 @@ pub mod notification_msg {
     #[derive(Deserialize, Serialize, Debug)]
     #[serde(tag = "cmd")]
     pub enum NotificationMsg {
+        LIVE {},
         DANMU_MSG { info: DanmuMsg },
         ENTRY_EFFECT { data: EntryEffect },
         ENTRY_EFFECT_MUST_RECEIVE {},
