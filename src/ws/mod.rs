@@ -42,7 +42,9 @@ pub async fn open_client(
     ws_login: WsLogin,
     wx: Sender<ServerLiveMessage>,
 ) -> Result<(), Error> {
+    let mut reconnect_time = 0;
     loop {
+        let start_time = std::time::SystemTime::now();
         let (ws_stream, _) = connect_async(&url).await?;
         let (mut w_stream, mut r_stream) = ws_stream.split();
         let r = tokio::join!(
@@ -50,7 +52,14 @@ pub async fn open_client(
             loop_handle_msg(&mut r_stream, wx.clone())
         );
         info!("client close {:?} {:?}", r.0, r.1);
-        tokio::time::sleep(Duration::from_secs(300)).await;
+        let now = std::time::SystemTime::now();
+        let d = now.duration_since(start_time).unwrap().as_secs();
+        if d > (60 * 30) {
+            reconnect_time = 0;
+        }
+        let time = if reconnect_time >= 20 { 10 } else { 300 };
+        info!("reconnect[{}] after {} secs", reconnect_time, time);
+        tokio::time::sleep(Duration::from_secs(time)).await;
         info!("reconnect start");
     }
 }
