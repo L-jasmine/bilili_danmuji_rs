@@ -57,7 +57,7 @@ pub async fn open_client(
         if d > (60 * 30) {
             reconnect_time = 0;
         }
-        let time = if reconnect_time >= 20 { 10 } else { 300 };
+        let time = if reconnect_time <= 20 { 10 } else { 300 };
         info!("reconnect[{}] after {} secs", reconnect_time, time);
         tokio::time::sleep(Duration::from_secs(time)).await;
         info!("reconnect start");
