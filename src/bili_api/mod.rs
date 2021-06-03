@@ -17,14 +17,14 @@ const COOKIE_BILI_JCT: &'static str = "bili_jct=";
 const UA: &'static str =
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36";
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct UserToken {
     pub uid: String,
     pub token: String,
     pub csrf: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct APIClient {
     pub client: Client,
     pub token: UserToken,

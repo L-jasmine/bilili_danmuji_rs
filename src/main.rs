@@ -17,27 +17,8 @@ async fn main() {
     config::logger_config();
     let room_id = config::APP_CONFIG.room_id;
     let api_client = bili_api::get_client().await.unwrap();
-    let danmu_info = bili_api::get_danmu_info(&api_client, room_id).await;
-
-    if let Ok(bili_api::APIResult {
-        data: Some(bili_api::DanmuInfoResult {
-            host_list, token, ..
-        }),
-        ..
-    }) = danmu_info
-    {
-        let uid = api_client.token.uid.parse().unwrap();
-        let ws_client = ws::connect(ws::WsLogin {
-            room_id,
-            uid,
-            key: token,
-        })
-        .await;
-
-        task::run(ws_client, api_client).await;
-    } else {
-        error!("get danmu info error {:?}", danmu_info);
-    }
+    let ws_client = ws::connect(api_client.clone(), room_id).await;
+    task::run(ws_client, api_client).await;
 
     info!("exit")
 }
