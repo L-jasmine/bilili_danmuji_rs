@@ -14,15 +14,31 @@ pub mod notification_msg {
     #[serde(tag = "cmd")]
     pub enum NotificationMsg {
         LIVE {},
-        DANMU_MSG { info: DanmuMsg },
-        ENTRY_EFFECT { data: EntryEffect },
+        #[serde(rename = "DANMU_MSG:4:0:2:2:2:0")]
+        DANMU_MSG_N {
+            info: DanmuMsg,
+        },
+        DANMU_MSG {
+            info: DanmuMsg,
+        },
+        ENTRY_EFFECT {
+            data: EntryEffect,
+        },
         ENTRY_EFFECT_MUST_RECEIVE {},
-        INTERACT_WORD { data: Interact },
+        INTERACT_WORD {
+            data: Interact,
+        },
         NOTICE_MSG {},
         STOP_LIVE_ROOM_LIST {},
-        SEND_GIFT { data: OneGift },
-        COMBO_SEND { data: BatchGift },
-        GUARD_BUY { data: GuardBuy },
+        SEND_GIFT {
+            data: OneGift,
+        },
+        COMBO_SEND {
+            data: BatchGift,
+        },
+        GUARD_BUY {
+            data: GuardBuy,
+        },
 
         ROOM_BLOCK_MSG {},
         ROOM_REAL_TIME_MESSAGE_UPDATE {},

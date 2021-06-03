@@ -11,7 +11,8 @@ pub async fn run(mut ws_client: MsgStream, api_client: APIClient) {
                 NotificationMsg::LIVE { .. } => {
                     info!("直播开始");
                 }
-                NotificationMsg::DANMU_MSG { info: msg } => {
+                NotificationMsg::DANMU_MSG { info: msg }
+                | NotificationMsg::DANMU_MSG_N { info: msg } => {
                     info!("弹幕: {:?}", msg);
                 }
                 NotificationMsg::ENTRY_EFFECT { data } => {
