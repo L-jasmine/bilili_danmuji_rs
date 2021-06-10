@@ -54,6 +54,7 @@ pub mod notification_msg {
         PK_BATTLE_START_NEW {},
         PK_BATTLE_PROCESS_NEW {},
         PK_BATTLE_PROCESS {},
+        COMMON_NOTICE_DANMAKU {},
     }
 
     #[derive(Serialize, Debug)]

@@ -61,6 +61,7 @@ pub async fn run(mut ws_client: MsgStream, api_client: APIClient) {
                 NotificationMsg::PK_BATTLE_START_NEW { .. } => {}
                 NotificationMsg::PK_BATTLE_PROCESS_NEW { .. } => {}
                 NotificationMsg::PK_BATTLE_PROCESS { .. } => {}
+                NotificationMsg::COMMON_NOTICE_DANMAKU { .. } => {}
             },
             ServerLiveMessage::ServerHeartBeat => {
                 debug!("heart_beat")
