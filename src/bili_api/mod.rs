@@ -1,9 +1,8 @@
 use anyhow::Error;
 use reqwest::cookie::{CookieStore, Jar};
-use reqwest::header::{ToStrError, USER_AGENT};
-use reqwest::{Client, Url};
+use reqwest::header::USER_AGENT;
+use reqwest::Client;
 use serde::{Deserialize, Serialize};
-use std::io::Cursor;
 use std::sync::Arc;
 use std::time::Duration;
 

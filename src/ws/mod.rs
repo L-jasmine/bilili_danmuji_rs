@@ -1,6 +1,6 @@
 pub mod message;
 
-use crate::bili_api::{APIClient, APIResult, DanmuInfoResult};
+use crate::bili_api::{APIClient, APIResult};
 pub use crate::ws::message::notification_msg::NotificationMsg;
 pub use crate::ws::message::{ClientLiveMessage, MsgDecodeError, ServerLiveMessage, WsLogin};
 use anyhow::Error;

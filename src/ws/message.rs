@@ -1,14 +1,13 @@
 use byteorder::{NetworkEndian, ReadBytesExt, WriteBytesExt};
 use std::collections::LinkedList;
-use std::io::Write;
-use std::io::{BufRead, Cursor};
-use std::io::{Read, Seek};
+use std::io::Cursor;
+use std::io::Read;
 use thiserror::Error;
 
 #[allow(non_camel_case_types)]
 pub mod notification_msg {
     use serde::de::Error;
-    use serde::{Deserialize, Deserializer, Serialize};
+    use serde::{Deserialize, Serialize};
     use serde_json::Value;
 
     #[derive(Deserialize, Serialize, Debug)]
@@ -182,7 +181,6 @@ pub mod notification_msg {
         pub uname: String,
     }
 }
-
 #[derive(Debug)]
 pub enum ServerLiveMessage {
     LoginAck,

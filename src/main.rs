@@ -5,8 +5,6 @@ extern crate lazy_static;
 #[macro_use]
 extern crate log;
 
-use std::env::args;
-
 pub mod bili_api;
 pub mod config;
 pub mod task;
