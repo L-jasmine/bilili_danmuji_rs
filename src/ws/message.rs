@@ -42,11 +42,15 @@ pub mod notification_msg {
         },
 
         ROOM_BLOCK_MSG {},
+        ROOM_CHANGE {},
         ROOM_REAL_TIME_MESSAGE_UPDATE {},
         HOT_RANK_CHANGED {},
+        HOT_RANK_SETTLEMENT {},
         ONLINE_RANK_TOP3 {},
         ONLINE_RANK_COUNT {},
         ONLINE_RANK_V2 {},
+        PK_BATTLE_PRE {},
+        PK_BATTLE_START {},
         PK_BATTLE_END {},
         PK_BATTLE_SETTLE_USER {},
         PK_BATTLE_SETTLE_V2 {},
@@ -55,7 +59,10 @@ pub mod notification_msg {
         PK_BATTLE_START_NEW {},
         PK_BATTLE_PROCESS_NEW {},
         PK_BATTLE_PROCESS {},
+        WIDGET_BANNER {},
         COMMON_NOTICE_DANMAKU {},
+        LITTLE_MESSAGE_BOX {},
+        TRADING_SCORE {},
     }
 
     #[derive(Serialize, Debug)]
