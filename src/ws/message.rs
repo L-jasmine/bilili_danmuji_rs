@@ -5,6 +5,7 @@ use std::io::{BufRead, Cursor};
 use std::io::{Read, Seek};
 use thiserror::Error;
 
+#[allow(non_camel_case_types)]
 pub mod notification_msg {
     use serde::de::Error;
     use serde::{Deserialize, Deserializer, Serialize};
