@@ -1,13 +1,13 @@
 use anyhow::Error;
 use reqwest::cookie::{CookieStore, Jar};
-use reqwest::header::USER_AGENT;
+use reqwest::header::{ACCEPT, ORIGIN, REFERER, USER_AGENT};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use std::time::Duration;
 
 const BILI_URL: &'static str = "https://api.bilibili.com";
-const TOKEN_PATH: &'static str = "token";
+const TOKEN_PATH: &'static str = "./token";
 
 const COOKIE_USER_ID: &'static str = "DedeUserID=";
 const COOKIE_SESSDATA: &'static str = "SESSDATA=";
@@ -85,24 +85,30 @@ fn get_client_from_file() -> Result<APIClient, Error> {
     Ok(APIClient { client, token })
 }
 
+#[tokio::test]
+async fn test_get_client_from_bili() {
+    let r = get_client_from_bili().await.unwrap();
+    println!("{}", r.token.uid)
+}
+
 async fn get_client_from_bili() -> Result<APIClient, Error> {
     let login_url = get_login_url().await?;
-    if let Some(ref url) = login_url.data {
-        'check: loop {
-            print_login_qrcode(url.url.as_str());
-            println!("\n== 扫码确认后按回车 ==");
-            let mut ignore = String::new();
-            std::io::stdin().read_line(&mut ignore);
 
-            let (client, login_result) = get_bili_client(url.oauth_key.as_str()).await?;
-            if login_result.status {
-                return Ok(client);
-            } else if let Some(serde_json::Value::Number(n)) = login_result.data {
-                if n == serde_json::Number::from(-4i64) {
-                    println!("\n== 未扫描二维码 ==");
-                    continue 'check;
-                } else {
-                    return Err(anyhow!("get login url error \n {:?}", login_result.message));
+    if let Some(ref url) = login_url.data {
+        print_login_qrcode(url.url.as_str());
+
+        'check: loop {
+            tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+            let (client, login_result) = get_bili_client(url.qrcode_key.as_str()).await?;
+            println!("{:?}", login_result);
+            if login_result.code == 0 {
+                if let Some(r) = login_result.data {
+                    if r.code != 0 {
+                        println!("{}", r.message);
+                        continue 'check;
+                    } else {
+                        return Ok(client);
+                    }
                 }
             } else {
                 return Err(anyhow!("get login url error \n {:?}", login_result));
@@ -138,8 +144,6 @@ async fn test_get_client() {
 #[derive(Deserialize, Serialize, Debug)]
 pub struct APIResult<T> {
     #[serde(default)]
-    pub status: bool,
-    #[serde(default)]
     pub code: i32,
     #[serde(default)]
     pub message: Option<String>,
@@ -153,14 +157,22 @@ pub struct APIResult<T> {
 #[derive(Deserialize, Serialize, Debug)]
 pub struct LoginUrl {
     pub url: String,
-    #[serde(rename = "oauthKey")]
-    pub oauth_key: String,
+    pub qrcode_key: String,
+}
+
+#[tokio::test]
+async fn test_get_login_url() {
+    let login_url = get_login_url().await.unwrap();
+    println!("{:?}", login_url);
 }
 
 pub async fn get_login_url() -> Result<APIResult<LoginUrl>, Error> {
-    let resp = reqwest::get("https://passport.bilibili.com/qrcode/getLoginUrl")
-        .await
-        .map_err(|e| anyhow!("request {:?}", e))?;
+    // https://passport.bilibili.com/x/passport-login/web/qrcode/generate?source=main-fe-header
+    let resp = reqwest::get(
+        "https://passport.bilibili.com/x/passport-login/web/qrcode/generate?source=main-fe-header",
+    )
+    .await
+    .map_err(|e| anyhow!("request {:?}", e))?;
     let r = resp
         .json::<APIResult<LoginUrl>>()
         .await
@@ -195,9 +207,19 @@ pub fn print_login_qrcode(login_url: &str) {
     }
 }
 
-pub async fn get_bili_client(
-    oauth_key: &str,
-) -> Result<(APIClient, APIResult<serde_json::Value>), Error> {
+#[derive(Deserialize, Serialize, Debug)]
+pub struct QrResult {
+    url: String,
+    refresh_token: String,
+    timestamp: u64,
+    code: i32,
+    message: String,
+}
+
+pub async fn get_bili_client(qrcode_key: &str) -> Result<(APIClient, APIResult<QrResult>), Error> {
+    info!("get_bili_client by {}", qrcode_key);
+    // https://passport.biligame.com/x/passport-login/web/crossDomain?DedeUserID=16856350&DedeUserID__ckMd5=59f1d8365143ac66&Expires=1720765201&SESSDATA=56773412,1720765201,36615*12CjDbRK4JVBD6u2H_LA9a3C2px9CKaaCVwidTnrfjLYSIJc0PisIZZE2VRrNZMToXbIUSVngzNWo1b1loOFM1T25yVEMzZHM0bnRCdGdpWjVoeEhvVTRYME41MW5FMVFTRlpVbm9aWm1ZU2NTR2hkYndOeF9idTc3UlNVRFN6M2xDbml2ZV9ya1RBIIEC&bili_jct=6080ad32f93a316bbb1fc71cd30c6cd5&gourl=https%3A%2F%2Fwww.bilibili.com
+
     let jar = Arc::new(Jar::default());
 
     let client = Client::builder()
@@ -207,15 +229,17 @@ pub async fn get_bili_client(
         .build()
         .map_err(|e| anyhow!("{}", e))?;
 
-    let form_param = [("oauthKey", oauth_key)];
+    let form_param = [("qrcode_key", qrcode_key), ("source", "main-fe-header")];
     let resp = client
-        .post("https://passport.bilibili.com/qrcode/getLoginInfo")
+        .get(format!("https://passport.bilibili.com/x/passport-login/web/qrcode/poll?qrcode_key={}&source=main-fe-header", qrcode_key))
         .header(USER_AGENT, UA)
-        .header("referer", "https://passport.bilibili.com/login")
+        .header(ACCEPT, "application/json, text/plain, */*")
+        .header(REFERER, "https://www.bilibili.com")
+        .header(ORIGIN, "https://www.bilibili.com")
         .form(&form_param)
         .send()
         .await
-        .map_err(|e| anyhow!("{}", e))?;
+        .map_err(|e| anyhow!("reqwest qrcode/poll error {}", e))?;
 
     let header_cookies = resp.headers().get_all("set-cookie");
     let mut cookies = String::new();
@@ -236,14 +260,17 @@ pub async fn get_bili_client(
     }
 
     let r = resp
-        .json::<APIResult<serde_json::Value>>()
+        .json::<APIResult<QrResult>>()
         .await
-        .map_err(|e| anyhow!("{}", e))?;
+        .map_err(|e| anyhow!("parse qrcode/poll respone error : {}", e))?;
 
-    let token = if r.status {
+    let token = if r.code == 0 && r.data.is_some() && r.data.as_ref().unwrap().code == 0 {
         let token = check_cookie(jar.as_ref())?;
         //save token
-        std::fs::write(TOKEN_PATH, cookies).map_err(|e| anyhow!("{}", e));
+        info!("save token");
+        std::fs::write(TOKEN_PATH, cookies)
+            .map_err(|e| anyhow!("{}", e))
+            .unwrap();
 
         token
     } else {
@@ -253,6 +280,7 @@ pub async fn get_bili_client(
             csrf: "".to_string(),
         }
     };
+
     Ok((APIClient { client, token }, r))
 }
 

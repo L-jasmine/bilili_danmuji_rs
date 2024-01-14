@@ -62,16 +62,20 @@ pub mod notification_msg {
         COMMON_NOTICE_DANMAKU {},
         LITTLE_MESSAGE_BOX {},
         TRADING_SCORE {},
+        WATCHED_CHANGE {},
+        AREA_RANK_CHANGED {},
+        LIKE_INFO_V3_UPDATE {},
+        LIKE_INFO_V3_CLICK {},
     }
 
     #[derive(Serialize, Debug)]
     pub struct DanmuMsg {
-        pub uid: u32,
+        pub uid: u64,
         pub uname: String,
 
         pub medal_lv: u32,
         pub medal_name: String,
-        pub medal_owner_uid: u32,
+        pub medal_owner_uid: u64,
         pub medal_owner_name: String,
 
         pub text: String,
@@ -86,7 +90,7 @@ pub mod notification_msg {
             match info {
                 Value::Array(ref info) => match info.as_slice() {
                     [_, Value::String(text), Value::Array(user), Value::Array(up), ..] => {
-                        let uid = user.get(0).and_then(|v| v.as_u64()).unwrap_or(0) as u32;
+                        let uid = user.get(0).and_then(|v| v.as_u64()).unwrap_or(0);
                         let uname = user
                             .get(1)
                             .and_then(|v| v.as_str())
@@ -96,7 +100,7 @@ pub mod notification_msg {
                         let card_lv = up.get(0).and_then(|v| v.as_u64()).unwrap_or(0) as u32;
                         let card_name =
                             up.get(1).and_then(|v| v.as_str()).unwrap_or("").to_string();
-                        let up_uid = up.last().and_then(|v| v.as_u64()).unwrap_or(0) as u32;
+                        let up_uid = up.last().and_then(|v| v.as_u64()).unwrap_or(0);
                         let up_name = up.get(2).and_then(|v| v.as_str()).unwrap_or("").to_string();
                         Ok(DanmuMsg {
                             uid,
@@ -118,7 +122,7 @@ pub mod notification_msg {
     #[derive(Deserialize, Serialize, Default, Debug)]
     pub struct EntryEffect {
         #[serde(default)]
-        pub uid: u32,
+        pub uid: u64,
         #[serde(default)]
         pub copy_writing: String,
     }
@@ -126,7 +130,7 @@ pub mod notification_msg {
     #[derive(Deserialize, Serialize, Debug)]
     pub struct Interact {
         #[serde(default)]
-        pub uid: u32,
+        pub uid: u64,
         #[serde(default)]
         pub uname: String,
         #[serde(default)]
@@ -155,7 +159,7 @@ pub mod notification_msg {
         pub gift_name: String,
         pub guard_level: u32,
         pub num: u32,
-        pub uid: u32,
+        pub uid: u64,
         pub username: String,
     }
 
@@ -167,7 +171,7 @@ pub mod notification_msg {
         pub gift_name: String,
         pub total_coin: u32,
         pub num: u32,
-        pub uid: u32,
+        pub uid: u64,
         pub uname: String,
     }
 
@@ -177,7 +181,7 @@ pub mod notification_msg {
         pub gift_name: String,
         pub total_num: u32,
         pub combo_total_coin: u32,
-        pub uid: u32,
+        pub uid: u64,
         pub uname: String,
     }
 }
@@ -217,21 +221,28 @@ impl ClientLiveMessage {
                 let package_len = 16 + payload_len;
 
                 let mut package = Vec::<u8>::with_capacity(package_len);
-                package.write_u32::<NetworkEndian>(package_len as u32);
-                package.write_u16::<NetworkEndian>(16);
-                package.write_u16::<NetworkEndian>(1);
-                package.write_u32::<NetworkEndian>(7);
-                package.write_u32::<NetworkEndian>(1);
+                package
+                    .write_u32::<NetworkEndian>(package_len as u32)
+                    .unwrap();
+                package.write_u16::<NetworkEndian>(16).unwrap();
+                package.write_u16::<NetworkEndian>(1).unwrap();
+                package.write_u32::<NetworkEndian>(7).unwrap();
+                package.write_u32::<NetworkEndian>(1).unwrap();
                 package.extend_from_slice(payload.as_bytes());
                 package
             }
             ClientLiveMessage::ClientHeartBeat => {
-                let mut package = Vec::<u8>::with_capacity(16);
-                package.write_u32::<NetworkEndian>(16);
-                package.write_u16::<NetworkEndian>(16);
-                package.write_u16::<NetworkEndian>(1);
-                package.write_u32::<NetworkEndian>(2);
-                package.write_u32::<NetworkEndian>(1);
+                let payload = b"[object Object]";
+                let payload_len = payload.len();
+                let package_len = 16 + payload_len;
+
+                let mut package = Vec::<u8>::with_capacity(package_len);
+                package.write_u32::<NetworkEndian>(16).unwrap();
+                package.write_u16::<NetworkEndian>(16).unwrap();
+                package.write_u16::<NetworkEndian>(1).unwrap();
+                package.write_u32::<NetworkEndian>(2).unwrap();
+                package.write_u32::<NetworkEndian>(1).unwrap();
+                package.extend_from_slice(payload);
                 package
             }
         }
@@ -275,9 +286,15 @@ pub fn decode_from_server(
             .read_u32::<NetworkEndian>()
             .map_err(|_| MsgDecodeError::BadHeader)?;
 
+        trace!(
+            "package_version={} package_other={}",
+            package_version,
+            package_other
+        );
+
         if package_version == 2 {
             let mut package_body = vec![];
-            buff.read_to_end(&mut package_body);
+            let _ = buff.read_to_end(&mut package_body);
 
             let new_data = inflate::inflate_bytes_zlib(package_body.as_slice())
                 .map_err(|e| MsgDecodeError::InflateError(e))?;
@@ -296,7 +313,7 @@ pub fn decode_from_server(
 
         let package_body_len = package_length - package_head_length;
         let mut package_body = vec![0; package_body_len];
-        buff.read(package_body.as_mut_slice());
+        let _ = buff.read(package_body.as_mut_slice());
 
         match package_type {
             3 => result_list.push_back(ServerLiveMessage::ServerHeartBeat),

@@ -43,7 +43,7 @@ pub fn logger_config() {
         .build(
             Root::builder()
                 .appender("stdout")
-                .build(log::LevelFilter::Info),
+                .build(log::LevelFilter::Debug),
         )
         .unwrap();
 

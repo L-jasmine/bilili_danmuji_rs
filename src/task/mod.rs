@@ -1,7 +1,7 @@
 use crate::bili_api::APIClient;
 use crate::ws::{MsgStream, NotificationMsg, ServerLiveMessage};
 
-pub async fn run(mut ws_client: MsgStream, api_client: APIClient) {
+pub async fn run(mut ws_client: MsgStream, _api_client: APIClient) {
     while let Some(recv_msg) = ws_client.rx.recv().await {
         match recv_msg {
             ServerLiveMessage::LoginAck => {
@@ -32,7 +32,7 @@ pub async fn run(mut ws_client: MsgStream, api_client: APIClient) {
                         info!("互关: {:?}", data);
                     }
                     _ => {
-                        info!("未知: {:?}", data);
+                        warn!("未知: {:?}", data);
                     }
                 },
                 NotificationMsg::ENTRY_EFFECT_MUST_RECEIVE { .. } => {}
